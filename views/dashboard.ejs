@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sunucu Seç</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        nav {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        
+        .logout-btn {
+            background: #ed4245;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+        
+        .logout-btn:hover { opacity: 0.8; }
+        
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .guilds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .guild-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+        
+        .guild-card:hover {
+            border-color: #5865f2;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .guild-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .guild-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .guild-members {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        
+        .no-guilds {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .no-guilds h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        
+        .no-guilds p {
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .add-bot-btn {
+            display: inline-block;
+            background: #5865f2;
+            padding: 15px 40px;
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .add-bot-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">🔒 Discord Güvenlik Botu</div>
+        <div class="user-info">
+            <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+            <span><%= user.username %>#<%= user.discriminator %></span>
+            <a href="/logout" class="logout-btn">Çıkış</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Sunucu Seç</h1>
+        
+        <% if (guilds && guilds.length > 0) { %>
+            <div class="guilds-grid">
+                <% guilds.forEach(guild => { %>
+                    <a href="/dashboard/<%= guild.id %>" class="guild-card">
+                        <% if (guild.icon) { %>
+                            <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="<%= guild.name %>" class="guild-icon">
+                        <% } else { %>
+                            <div class="guild-icon" style="display: flex; align-items: center; justify-content: center; font-size: 2em;">
+                                <%= guild.name.charAt(0) %>
+                            </div>
+                        <% } %>
+                        <div class="guild-name"><%= guild.name %></div>
+                        <div class="guild-members">👥 Yönetici</div>
+                    </a>
+                <% }) %>
+            </div>
+        <% } else { %>
+            <div class="no-guilds">
+                <h2>😔 Bot henüz hiçbir sunucunuzda yok</h2>
+                <p>Bot'u yönettiğiniz sunuculara ekleyin ve geri dönün!</p>
+                <a href="https://discord.com/api/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=1099780063366&scope=bot%20applications.commands" class="add-bot-btn" target="_blank">
+                    ➕ Bot'u Ekle
+                </a>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>
