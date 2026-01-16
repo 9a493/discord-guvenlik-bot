@@ -5,6 +5,7 @@ const { Routes } = require('discord-api-types/v10');
 const initSqlJs = require('sql.js');
 const fs = require('fs');
 const dashboardApp = require('./dashboard');
+const AntiRaidSystem = require('./antiraid');
 
 // Database başlat
 let db;
@@ -13,7 +14,6 @@ const DB_FILE = 'bot.db';
 async function initDatabase() {
     const SQL = await initSqlJs();
     
-    // Eğer veritabanı dosyası varsa yükle, yoksa yeni oluştur
     if (fs.existsSync(DB_FILE)) {
         const filebuffer = fs.readFileSync(DB_FILE);
         db = new SQL.Database(filebuffer);
@@ -21,7 +21,7 @@ async function initDatabase() {
         db = new SQL.Database();
     }
     
-    // Tabloları oluştur
+    // Tablolar
     db.run(`
         CREATE TABLE IF NOT EXISTS guild_settings (
             guild_id TEXT PRIMARY KEY,
@@ -34,7 +34,18 @@ async function initDatabase() {
             log_channel TEXT,
             language TEXT DEFAULT 'tr',
             whitelist TEXT DEFAULT '[]',
-            enabled INTEGER DEFAULT 1
+            enabled INTEGER DEFAULT 1,
+            antiraid_enabled INTEGER DEFAULT 1,
+            join_threshold INTEGER DEFAULT 5,
+            min_account_age INTEGER DEFAULT 7,
+            suspicion_threshold INTEGER DEFAULT 5,
+            auto_kick_suspicious INTEGER DEFAULT 1,
+            quarantine_role TEXT,
+            raid_mode_action TEXT DEFAULT 'quarantine',
+            raid_mode_duration INTEGER DEFAULT 600000,
+            verification_enabled INTEGER DEFAULT 0,
+            verification_channel TEXT,
+            rules_channel TEXT
         );
     `);
     
@@ -77,7 +88,6 @@ function saveDatabase() {
     fs.writeFileSync(DB_FILE, buffer);
 }
 
-// Helper functions
 function dbGet(sql, params = []) {
     const stmt = db.prepare(sql);
     stmt.bind(params);
@@ -102,7 +112,6 @@ function dbRun(sql, params = []) {
     saveDatabase();
 }
 
-// Bot client
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -114,9 +123,11 @@ const client = new Client({
     ]
 });
 
-// Global bot client (dashboard için)
 global.discordClient = client;
 global.db = { get: dbGet, all: dbAll, run: dbRun };
+
+// Anti-Raid sistemini başlat
+let antiRaid;
 
 client.commands = new Collection();
 
@@ -168,7 +179,6 @@ function addViolation(guildId, userId, type, reason, action) {
     `, [guildId]);
 }
 
-// Memory cache
 const userMessages = new Map();
 const userVoiceActions = new Map();
 const userViolations = new Map();
@@ -230,6 +240,83 @@ const commands = [
     {
         name: 'dashboard',
         description: '🌐 Web dashboard linkini al'
+    },
+    {
+        name: 'raidmode',
+        description: '🚨 Raid korumasını aç/kapat',
+        default_member_permissions: '8',
+        options: [
+            {
+                name: 'durum',
+                description: 'Raid mode durumu',
+                type: 3,
+                required: true,
+                choices: [
+                    { name: '✅ Aktif Et', value: 'enable' },
+                    { name: '❌ Kapat', value: 'disable' },
+                    { name: '📊 Durum', value: 'status' }
+                ]
+            }
+        ]
+    },
+    {
+        name: 'antiraid',
+        description: '🛡️ Anti-raid ayarlarını yönet',
+        default_member_permissions: '8',
+        options: [
+            {
+                name: 'ayarla',
+                description: 'Anti-raid ayarlarını değiştir',
+                type: 1,
+                options: [
+                    {
+                        name: 'özellik',
+                        description: 'Değiştirilecek ayar',
+                        type: 3,
+                        required: true,
+                        choices: [
+                            { name: 'Join Eşiği (60sn içinde kaç kişi)', value: 'join_threshold' },
+                            { name: 'Min Hesap Yaşı (gün)', value: 'min_account_age' },
+                            { name: 'Şüphe Eşiği (0-10)', value: 'suspicion_threshold' }
+                        ]
+                    },
+                    {
+                        name: 'değer',
+                        description: 'Yeni değer (sayı)',
+                        type: 4,
+                        required: true
+                    }
+                ]
+            },
+            {
+                name: 'durum',
+                description: 'Mevcut anti-raid ayarlarını göster',
+                type: 1
+            },
+            {
+                name: 'istatistik',
+                description: 'Join istatistiklerini göster',
+                type: 1
+            }
+        ]
+    },
+    {
+        name: 'karantina',
+        description: '🔒 Karantina rolü ayarla',
+        default_member_permissions: '8',
+        options: [
+            {
+                name: 'rol',
+                description: 'Karantina rolü',
+                type: 8,
+                required: true
+            }
+        ]
+    },
+    {
+        name: 'şüpheliler',
+        description: '⚠️ Şüpheli kullanıcıları listele',
+        default_member_permissions: '8'
     }
 ];
 
@@ -294,6 +381,7 @@ client.on('interactionCreate', async interaction => {
 
     const { commandName } = interaction;
 
+    // MEVCUT KOMUTLAR
     if (commandName === 'dashboard') {
         const embed = new EmbedBuilder()
             .setColor(0x5865f2)
@@ -314,7 +402,8 @@ client.on('interactionCreate', async interaction => {
             .addFields(
                 { name: '📩 Spam Koruması', value: 'Mesaj spam\'ini otomatik tespit eder' },
                 { name: '🎤 Ses Kanalı Koruması', value: 'Ses kanalı kötüye kullanımını önler' },
-                { name: '⚖️ Otomatik Cezalandırma', value: '1dk → 1sa → Kick sistemi' }
+                { name: '⚖️ Otomatik Cezalandırma', value: '1dk → 1sa → Kick sistemi' },
+                { name: '🛡️ Anti-Raid', value: 'Toplu hesap saldırılarını engeller' }
             )
             .setFooter({ text: 'Başlamak için butona tıklayın' });
 
@@ -341,7 +430,8 @@ client.on('interactionCreate', async interaction => {
                 { name: '⏱️ 1. Timeout', value: `${settings.timeout_1/60000} dakika`, inline: true },
                 { name: '⏱️ 2. Timeout', value: `${settings.timeout_2/3600000} saat`, inline: true },
                 { name: '📝 Log Kanalı', value: settings.log_channel ? `<#${settings.log_channel}>` : 'Ayarlanmamış', inline: true },
-                { name: '🛡️ Durum', value: settings.enabled ? '✅ Aktif' : '❌ Pasif', inline: true }
+                { name: '🛡️ Durum', value: settings.enabled ? '✅ Aktif' : '❌ Pasif', inline: true },
+                { name: '🚨 Anti-Raid', value: settings.antiraid_enabled ? '✅ Aktif' : '❌ Pasif', inline: true }
             )
             .setFooter({ text: 'Web dashboard\'dan daha fazla ayar yapabilirsiniz!' })
             .setTimestamp();
@@ -434,13 +524,166 @@ client.on('interactionCreate', async interaction => {
             .setTitle('❓ Discord Güvenlik Botu - Yardım')
             .setDescription('Sunucunuzu otomatik olarak koruyan güvenlik botu.')
             .addFields(
-                { name: '📋 Komutlar', value: '`/setup` - Bot kurulumu\n`/ayarlar` - Ayarları görüntüle\n`/istatistikler` - İstatistikler\n`/whitelist` - Beyaz liste yönetimi\n`/dashboard` - Web panel\n`/yardım` - Bu mesaj' },
-                { name: '🛡️ Özellikler', value: '• Spam koruması\n• Ses kanalı koruması\n• Otomatik cezalandırma\n• Sunucu başına özelleştirme\n• Detaylı loglar' },
+                { name: '📋 Temel Komutlar', value: '`/setup` - Bot kurulumu\n`/ayarlar` - Ayarları görüntüle\n`/istatistikler` - İstatistikler\n`/whitelist` - Beyaz liste yönetimi\n`/dashboard` - Web panel\n`/yardım` - Bu mesaj' },
+                { name: '🚨 Anti-Raid Komutları', value: '`/raidmode` - Raid modunu aç/kapat\n`/antiraid` - Anti-raid ayarları\n`/karantina` - Karantina rolü ayarla\n`/şüpheliler` - Şüpheli kullanıcılar' },
+                { name: '🛡️ Özellikler', value: '• Spam koruması\n• Ses kanalı koruması\n• Anti-raid sistem\n• Otomatik cezalandırma\n• Sunucu başına özelleştirme\n• Detaylı loglar' },
                 { name: '🔗 Linkler', value: `[Dashboard](${process.env.CALLBACK_URL?.replace('/callback', '') || 'http://localhost:3000'}) • [Destek](https://discord.gg/...) • [Gizlilik](${process.env.CALLBACK_URL?.replace('/callback', '/privacy') || 'http://localhost:3000/privacy'})` }
             )
             .setTimestamp();
 
         await interaction.reply({ embeds: [embed] });
+    }
+    // YENİ ANTI-RAID KOMUTLARI
+    else if (commandName === 'raidmode') {
+        const durum = interaction.options.getString('durum');
+        
+        if (durum === 'enable') {
+            await antiRaid.toggleRaidMode(interaction.guild, true);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0xFF0000)
+                .setTitle('🚨 Raid Mode Aktif')
+                .setDescription('Sunucu raid koruması altına alındı!')
+                .addFields(
+                    { name: '⚠️ Durum', value: 'Tüm yeni üyeler sıkı kontrolden geçecek' },
+                    { name: '⏱️ Süre', value: '10 dakika (veya manuel kapatılana kadar)' }
+                )
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed] });
+        }
+        else if (durum === 'disable') {
+            await antiRaid.toggleRaidMode(interaction.guild, false);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle('✅ Raid Mode Kapatıldı')
+                .setDescription('Normal güvenlik seviyesine dönüldü.')
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed] });
+        }
+        else if (durum === 'status') {
+            const isActive = antiRaid.isRaidModeActive(interaction.guild.id);
+            const stats = antiRaid.getJoinStats(interaction.guild.id);
+            
+            const embed = new EmbedBuilder()
+                .setColor(isActive ? 0xFF0000 : 0x00FF00)
+                .setTitle('📊 Raid Mode Durumu')
+                .addFields(
+                    { name: '🛡️ Durum', value: isActive ? '🚨 AKTİF' : '✅ PASİF', inline: true },
+                    { name: '👥 Son 1 Dakika', value: `${stats.last_minute} katılım`, inline: true },
+                    { name: '👥 Son 5 Dakika', value: `${stats.last_5_minutes} katılım`, inline: true },
+                    { name: '👥 Son 1 Saat', value: `${stats.last_hour} katılım`, inline: true }
+                )
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    }
+    else if (commandName === 'antiraid') {
+        const subcommand = interaction.options.getSubcommand();
+        
+        if (subcommand === 'ayarla') {
+            const özellik = interaction.options.getString('özellik');
+            const değer = interaction.options.getInteger('değer');
+            
+            let updateKey;
+            
+            switch(özellik) {
+                case 'join_threshold':
+                    updateKey = 'join_threshold';
+                    break;
+                case 'min_account_age':
+                    updateKey = 'min_account_age';
+                    break;
+                case 'suspicion_threshold':
+                    updateKey = 'suspicion_threshold';
+                    break;
+            }
+            
+            dbRun(`UPDATE guild_settings SET ${updateKey} = ? WHERE guild_id = ?`, 
+                   [değer, interaction.guild.id]);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x00FF00)
+                .setTitle('✅ Ayar Güncellendi')
+                .setDescription(`**${özellik}** değeri **${değer}** olarak ayarlandı.`)
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        else if (subcommand === 'durum') {
+            const settings = antiRaid.getGuildSettings(interaction.guild.id);
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle('🛡️ Anti-Raid Ayarları')
+                .addFields(
+                    { name: '🔢 Join Eşiği', value: `${settings.join_threshold} kişi/60sn`, inline: true },
+                    { name: '📅 Min Hesap Yaşı', value: `${settings.min_account_age} gün`, inline: true },
+                    { name: '⚠️ Şüphe Eşiği', value: `${settings.suspicion_threshold}/10`, inline: true },
+                    { name: '👢 Otomatik Kick', value: settings.auto_kick_suspicious ? '✅ Aktif' : '❌ Pasif', inline: true },
+                    { name: '🚨 Raid İşlemi', value: settings.raid_mode_action === 'kick' ? 'Kick' : 'Karantina', inline: true },
+                    { name: '🔒 Karantina Rolü', value: settings.quarantine_role ? `<@&${settings.quarantine_role}>` : 'Ayarlanmamış', inline: true }
+                )
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+        else if (subcommand === 'istatistik') {
+            const stats = antiRaid.getJoinStats(interaction.guild.id);
+            const suspiciousCount = antiRaid.getSuspiciousUsers(interaction.guild.id).length;
+            
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle('📊 Join İstatistikleri')
+                .addFields(
+                    { name: '👥 Son 1 Dakika', value: `${stats.last_minute} katılım`, inline: true },
+                    { name: '👥 Son 5 Dakika', value: `${stats.last_5_minutes} katılım`, inline: true },
+                    { name: '👥 Son 1 Saat', value: `${stats.last_hour} katılım`, inline: true },
+                    { name: '⚠️ Şüpheli Kullanıcılar', value: `${suspiciousCount} kişi`, inline: true }
+                )
+                .setTimestamp();
+            
+            await interaction.reply({ embeds: [embed], ephemeral: true });
+        }
+    }
+    else if (commandName === 'karantina') {
+        const role = interaction.options.getRole('rol');
+        
+        dbRun('UPDATE guild_settings SET quarantine_role = ? WHERE guild_id = ?', 
+               [role.id, interaction.guild.id]);
+        
+        const embed = new EmbedBuilder()
+            .setColor(0x00FF00)
+            .setTitle('✅ Karantina Rolü Ayarlandı')
+            .setDescription(`Şüpheli kullanıcılara ${role} rolü verilecek.`)
+            .setTimestamp();
+        
+        await interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+    else if (commandName === 'şüpheliler') {
+        const suspiciousIds = antiRaid.getSuspiciousUsers(interaction.guild.id);
+        
+        if (suspiciousIds.length === 0) {
+            await interaction.reply({ 
+                content: '✅ Şu anda şüpheli kullanıcı yok!', 
+                ephemeral: true 
+            });
+            return;
+        }
+        
+        const suspiciousList = suspiciousIds.slice(0, 20).map(id => `<@${id}> (${id})`).join('\n');
+        
+        const embed = new EmbedBuilder()
+            .setColor(0xFFA500)
+            .setTitle('⚠️ Şüpheli Kullanıcılar')
+            .setDescription(suspiciousList)
+            .setFooter({ text: `Toplam: ${suspiciousIds.length} kullanıcı` })
+            .setTimestamp();
+        
+        await interaction.reply({ embeds: [embed], ephemeral: true });
     }
 });
 
@@ -548,6 +791,11 @@ async function handleViolation(guild, user, type, reason, settings) {
 client.once('ready', async () => {
     console.log(`✅ ${client.user.tag} aktif!`);
     console.log(`📊 ${client.guilds.cache.size} sunucuda aktif`);
+    
+    // Anti-Raid sistemini başlat
+    antiRaid = new AntiRaidSystem(client, { get: dbGet, all: dbAll, run: dbRun });
+    global.antiRaid = antiRaid;
+    console.log('🛡️ Anti-Raid sistemi başlatıldı!');
     
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
     
