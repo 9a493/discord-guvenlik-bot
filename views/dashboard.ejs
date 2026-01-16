@@ -8,170 +8,429 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #fff;
         }
         
         nav {
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             padding: 20px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
         .logo {
             font-size: 1.5em;
-            font-weight: bold;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
         }
         
         .user-avatar {
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         
         .logout-btn {
             background: #ed4245;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 10px 24px;
+            border-radius: 8px;
             color: white;
             text-decoration: none;
-            transition: opacity 0.3s;
+            transition: all 0.3s;
+            font-weight: 600;
         }
         
-        .logout-btn:hover { opacity: 0.8; }
+        .logout-btn:hover { 
+            background: #c23538;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(237, 66, 69, 0.4);
+        }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 50px auto;
-            padding: 0 20px;
+            padding: 0 30px;
         }
         
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 30px;
+        .header {
             text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            opacity: 0.8;
+            font-size: 0.95em;
         }
         
         .guilds-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
         }
         
         .guild-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 15px;
+            border-radius: 16px;
             padding: 30px;
-            text-align: center;
             border: 2px solid transparent;
             transition: all 0.3s;
             cursor: pointer;
             text-decoration: none;
             color: white;
             display: block;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .guild-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(88, 101, 242, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .guild-card:hover::before {
+            opacity: 1;
         }
         
         .guild-card:hover {
             border-color: #5865f2;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(88, 101, 242, 0.3);
+        }
+        
+        .guild-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
         }
         
         .guild-icon {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            font-weight: 700;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .guild-info {
+            flex: 1;
         }
         
         .guild-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 5px;
         }
         
         .guild-members {
             opacity: 0.8;
-            font-size: 0.9em;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .guild-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .guild-stat {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .guild-stat-number {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #43b581;
+        }
+        
+        .guild-stat-label {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 3px;
         }
         
         .no-guilds {
             text-align: center;
             padding: 100px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .no-guilds-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
         }
         
         .no-guilds h2 {
-            font-size: 2em;
-            margin-bottom: 20px;
+            font-size: 2.2em;
+            margin-bottom: 15px;
         }
         
         .no-guilds p {
             font-size: 1.2em;
             opacity: 0.8;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
         
         .add-bot-btn {
             display: inline-block;
-            background: #5865f2;
-            padding: 15px 40px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+            padding: 18px 45px;
+            border-radius: 12px;
             color: white;
             text-decoration: none;
-            font-weight: bold;
-            transition: transform 0.2s;
+            font-weight: 700;
+            font-size: 1.1em;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(88, 101, 242, 0.3);
         }
         
         .add-bot-btn:hover {
             transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(88, 101, 242, 0.5);
+        }
+        
+        .search-box {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 18px 50px 18px 20px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #5865f2;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.3em;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .guilds-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
     <nav>
-        <div class="logo">🔒 Discord Güvenlik Botu</div>
+        <div class="logo">
+            🛡️ Discord Güvenlik Botu
+        </div>
         <div class="user-info">
-            <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
-            <span><%= user.username %>#<%= user.discriminator %></span>
+            <div class="user-profile">
+                <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="Avatar" class="user-avatar">
+                <span><%= user.username %></span>
+            </div>
             <a href="/logout" class="logout-btn">Çıkış</a>
         </div>
     </nav>
 
     <div class="container">
-        <h1>Sunucu Seç</h1>
+        <div class="header">
+            <h1>Dashboard</h1>
+            <p>Sunucunuzu seçin ve güvenlik ayarlarını yönetin</p>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">🖥️</div>
+                <div class="stat-number"><%= guilds ? guilds.length : 0 %></div>
+                <div class="stat-label">Yönettiğiniz Sunucu</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number"><%= guilds ? guilds.reduce((acc, g) => acc + (g.approximate_member_count || 0), 0) : 0 %></div>
+                <div class="stat-label">Toplam Üye</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛡️</div>
+                <div class="stat-number">99.9%</div>
+                <div class="stat-label">Koruma Oranı</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Aktif Koruma</div>
+            </div>
+        </div>
         
         <% if (guilds && guilds.length > 0) { %>
-            <div class="guilds-grid">
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="Sunucu ara...">
+                <span class="search-icon">🔍</span>
+            </div>
+
+            <div class="guilds-grid" id="guildsContainer">
                 <% guilds.forEach(guild => { %>
-                    <a href="/dashboard/<%= guild.id %>" class="guild-card">
-                        <% if (guild.icon) { %>
-                            <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="<%= guild.name %>" class="guild-icon">
-                        <% } else { %>
-                            <div class="guild-icon" style="display: flex; align-items: center; justify-content: center; font-size: 2em;">
-                                <%= guild.name.charAt(0) %>
+                    <a href="/dashboard/<%= guild.id %>" class="guild-card" data-name="<%= guild.name.toLowerCase() %>">
+                        <div class="guild-header">
+                            <% if (guild.icon) { %>
+                                <img src="https://cdn.discordapp.com/icons/<%= guild.id %>/<%= guild.icon %>.png" alt="<%= guild.name %>" class="guild-icon">
+                            <% } else { %>
+                                <div class="guild-icon">
+                                    <%= guild.name.charAt(0) %>
+                                </div>
+                            <% } %>
+                            <div class="guild-info">
+                                <div class="guild-name"><%= guild.name %></div>
+                                <div class="guild-members">
+                                    👥 <%= guild.approximate_member_count || 'N/A' %> üye
+                                </div>
                             </div>
-                        <% } %>
-                        <div class="guild-name"><%= guild.name %></div>
-                        <div class="guild-members">👥 Yönetici</div>
+                        </div>
+                        <div class="guild-stats">
+                            <div class="guild-stat">
+                                <div class="guild-stat-number">✅</div>
+                                <div class="guild-stat-label">Aktif</div>
+                            </div>
+                            <div class="guild-stat">
+                                <div class="guild-stat-number">🛡️</div>
+                                <div class="guild-stat-label">Korumalı</div>
+                            </div>
+                        </div>
                     </a>
                 <% }) %>
             </div>
         <% } else { %>
             <div class="no-guilds">
-                <h2>😔 Bot henüz hiçbir sunucunuzda yok</h2>
+                <div class="no-guilds-icon">😔</div>
+                <h2>Bot henüz hiçbir sunucunuzda yok</h2>
                 <p>Bot'u yönettiğiniz sunuculara ekleyin ve geri dönün!</p>
                 <a href="https://discord.com/api/oauth2/authorize?client_id=<%= process.env.CLIENT_ID %>&permissions=1099780063366&scope=bot%20applications.commands" class="add-bot-btn" target="_blank">
                     ➕ Bot'u Ekle
@@ -179,5 +438,27 @@
             </div>
         <% } %>
     </div>
+
+    <script>
+        // Sunucu arama
+        const searchInput = document.getElementById('searchInput');
+        const guildsContainer = document.getElementById('guildsContainer');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const guildCards = document.querySelectorAll('.guild-card');
+                
+                guildCards.forEach(card => {
+                    const guildName = card.getAttribute('data-name');
+                    if (guildName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
 </body>
 </html>

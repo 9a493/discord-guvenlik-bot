@@ -75,7 +75,6 @@ app.get('/logout', (req, res) => {
 // Dashboard - Sunucu seçimi
 app.get('/dashboard', checkAuth, async (req, res) => {
     try {
-        // Kullanıcının sunucularını al
         const fetch = (await import('node-fetch')).default;
         const response = await fetch('https://discord.com/api/users/@me/guilds', {
             headers: { Authorization: `Bearer ${req.user.accessToken}` }
@@ -121,7 +120,7 @@ app.get('/dashboard/:guildId', checkAuth, async (req, res) => {
     // İstatistikleri al
     let stats = db.get('SELECT * FROM stats WHERE guild_id = ?', [guildId]);
     if (!stats) {
-        stats = { total_violations: 0, spam_detected: 0, voice_abuse_detected: 0, timeouts_issued: 0, kicks_issued: 0 };
+        stats = { total_violations: 0, spam_detected: 0, voice_abuse_detected: 0, timeouts_issued: 0, kicks_issued: 0, scam_blocked: 0 };
     }
     
     // Son ihlalleri al
@@ -161,7 +160,13 @@ app.post('/api/guild/:guildId/settings', checkAuth, (req, res) => {
     const db = global.db;
     
     try {
-        const allowedFields = ['spam_threshold', 'spam_timewindow', 'voice_threshold', 'voice_timewindow', 'timeout_1', 'timeout_2', 'log_channel', 'enabled'];
+        const allowedFields = [
+            'spam_threshold', 'spam_timewindow', 'voice_threshold', 'voice_timewindow',
+            'timeout_1', 'timeout_2', 'log_channel', 'enabled', 'antiraid_enabled',
+            'join_threshold', 'min_account_age', 'suspicion_threshold', 'quarantine_role',
+            'linkfilter_enabled', 'block_url_shorteners', 'strict_mode', 'auto_timeout_scam',
+            'verification_channel', 'rules_channel'
+        ];
         
         const setClause = [];
         const values = [];
@@ -205,7 +210,7 @@ app.get('/api/guild/:guildId/stats', checkAuth, (req, res) => {
     
     let stats = db.get('SELECT * FROM stats WHERE guild_id = ?', [guildId]);
     if (!stats) {
-        stats = { total_violations: 0, spam_detected: 0, voice_abuse_detected: 0, timeouts_issued: 0, kicks_issued: 0 };
+        stats = { total_violations: 0, spam_detected: 0, voice_abuse_detected: 0, timeouts_issued: 0, kicks_issued: 0, scam_blocked: 0 };
     }
     
     res.json(stats);
@@ -269,6 +274,96 @@ app.post('/api/guild/:guildId/whitelist/remove', checkAuth, (req, res) => {
         db.run('UPDATE guild_settings SET whitelist = ? WHERE guild_id = ?', [JSON.stringify(whitelist), guildId]);
         
         res.json({ success: true, whitelist });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Blacklist yönetimi (Link Filter için)
+app.get('/api/guild/:guildId/blacklist', checkAuth, (req, res) => {
+    if (!global.linkFilter) {
+        return res.json({ blacklist: [] });
+    }
+    res.json({ blacklist: global.linkFilter.getBlacklist() });
+});
+
+app.post('/api/guild/:guildId/blacklist/add', checkAuth, (req, res) => {
+    const { domain } = req.body;
+    
+    if (!global.linkFilter) {
+        return res.status(500).json({ success: false, message: 'Link filter sistem başlatılmadı!' });
+    }
+    
+    try {
+        const success = global.linkFilter.addBlacklistedDomain(domain);
+        if (success) {
+            res.json({ success: true, message: 'Domain kara listeye eklendi!' });
+        } else {
+            res.json({ success: false, message: 'Domain zaten kara listede!' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post('/api/guild/:guildId/blacklist/remove', checkAuth, (req, res) => {
+    const { domain } = req.body;
+    
+    if (!global.linkFilter) {
+        return res.status(500).json({ success: false, message: 'Link filter sistem başlatılmadı!' });
+    }
+    
+    try {
+        const success = global.linkFilter.removeBlacklistedDomain(domain);
+        if (success) {
+            res.json({ success: true, message: 'Domain kara listeden çıkarıldı!' });
+        } else {
+            res.json({ success: false, message: 'Domain kara listede değil!' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Logları temizle
+app.post('/api/guild/:guildId/logs/clear', checkAuth, (req, res) => {
+    const guildId = req.params.guildId;
+    const db = global.db;
+    
+    try {
+        db.run('DELETE FROM violations WHERE guild_id = ?', [guildId]);
+        if (db.get('SELECT * FROM scam_logs LIMIT 1')) {
+            db.run('DELETE FROM scam_logs WHERE guild_id = ?', [guildId]);
+        }
+        res.json({ success: true, message: 'Loglar temizlendi!' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Tüm verileri sıfırla
+app.post('/api/guild/:guildId/reset', checkAuth, (req, res) => {
+    const guildId = req.params.guildId;
+    const db = global.db;
+    
+    try {
+        // Violations sil
+        db.run('DELETE FROM violations WHERE guild_id = ?', [guildId]);
+        
+        // Stats sıfırla
+        db.run('DELETE FROM stats WHERE guild_id = ?', [guildId]);
+        db.run('INSERT INTO stats (guild_id) VALUES (?)', [guildId]);
+        
+        // Scam logs sil
+        if (db.get('SELECT * FROM scam_logs LIMIT 1')) {
+            db.run('DELETE FROM scam_logs WHERE guild_id = ?', [guildId]);
+        }
+        
+        // Settings'i default'a döndür
+        db.run('DELETE FROM guild_settings WHERE guild_id = ?', [guildId]);
+        db.run('INSERT INTO guild_settings (guild_id) VALUES (?)', [guildId]);
+        
+        res.json({ success: true, message: 'Tüm veriler sıfırlandı!' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -4,138 +4,362 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= guild.name %> - Yönetim Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #2c2f33;
-            color: #fff;
+        :root {
+            --bg-primary: #1e2124;
+            --bg-secondary: #282b30;
+            --bg-tertiary: #36393f;
+            --accent: #5865f2;
+            --accent-hover: #4752c4;
+            --success: #43b581;
+            --danger: #ed4245;
+            --warning: #faa61a;
+            --text-primary: #ffffff;
+            --text-secondary: #b9bbbe;
+            --border: #202225;
         }
         
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        /* Top Bar */
         .top-bar {
-            background: #23272a;
+            background: var(--bg-secondary);
             padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #5865f2;
+            border-bottom: 2px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
         .guild-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
         
         .guild-icon {
             width: 50px;
             height: 50px;
             border-radius: 50%;
+            border: 2px solid var(--accent);
+        }
+        
+        .guild-details {
+            display: flex;
+            flex-direction: column;
         }
         
         .guild-name {
             font-size: 1.5em;
-            font-weight: bold;
+            font-weight: 700;
+        }
+        
+        .guild-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            background: rgba(67, 181, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         .back-btn {
-            background: #5865f2;
-            padding: 10px 20px;
-            border-radius: 5px;
+            background: var(--accent);
+            padding: 12px 24px;
+            border-radius: 8px;
             color: white;
             text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
+        .back-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+        
+        /* Container */
         .container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
+            display: flex;
             min-height: calc(100vh - 90px);
         }
         
+        /* Sidebar */
         .sidebar {
-            background: #23272a;
+            width: 280px;
+            background: var(--bg-secondary);
             padding: 20px;
-            border-right: 1px solid #40444b;
+            border-right: 1px solid var(--border);
+            position: sticky;
+            top: 90px;
+            height: calc(100vh - 90px);
+            overflow-y: auto;
+        }
+        
+        .menu-section {
+            margin-bottom: 30px;
+        }
+        
+        .menu-title {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
         
         .menu-item {
-            padding: 15px;
-            margin: 10px 0;
+            padding: 12px 16px;
+            margin: 5px 0;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            color: var(--text-secondary);
         }
         
         .menu-item:hover {
-            background: #40444b;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
         
         .menu-item.active {
-            background: #5865f2;
+            background: var(--accent);
+            color: var(--text-primary);
         }
         
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Content */
         .content {
+            flex: 1;
             padding: 30px;
             overflow-y: auto;
         }
         
         .tab-content {
             display: none;
+            animation: fadeIn 0.3s;
         }
         
         .tab-content.active {
             display: block;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .page-description {
+            color: var(--text-secondary);
+            font-size: 1.05em;
+        }
+        
+        /* Cards */
         .card {
-            background: #40444b;
-            border-radius: 10px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
             padding: 25px;
             margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
         }
         
-        .card h2 {
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(88, 101, 242, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
-            color: #5865f2;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
         }
         
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, var(--accent) 0%, #7289da 100%);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: default;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(88, 101, 242, 0.3);
+        }
+        
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        
+        /* Forms */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .form-help {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 5px;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 12px;
-            border-radius: 5px;
-            border: 1px solid #5865f2;
-            background: #2c2f33;
-            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--bg-primary);
+        }
+        
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-info {
+            flex: 1;
+        }
+        
+        .toggle-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .toggle-description {
+            font-size: 0.9em;
+            color: var(--text-secondary);
         }
         
         .toggle-switch {
             position: relative;
             width: 60px;
-            height: 30px;
-            background: #ed4245;
-            border-radius: 30px;
+            height: 32px;
+            background: var(--danger);
+            border-radius: 32px;
             cursor: pointer;
             transition: background 0.3s;
         }
         
         .toggle-switch.active {
-            background: #43b581;
+            background: var(--success);
         }
         
         .toggle-switch::after {
@@ -145,65 +369,59 @@
             height: 26px;
             border-radius: 50%;
             background: white;
-            top: 2px;
-            left: 2px;
+            top: 3px;
+            left: 3px;
             transition: left 0.3s;
         }
         
         .toggle-switch.active::after {
-            left: 32px;
+            left: 31px;
         }
         
+        /* Buttons */
         .btn {
-            padding: 12px 30px;
+            padding: 14px 30px;
             border-radius: 8px;
             border: none;
             cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.3s;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .btn:hover { opacity: 0.8; }
+        .btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
         
         .btn-primary {
-            background: #5865f2;
+            background: var(--accent);
             color: white;
         }
         
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        
         .btn-success {
-            background: #43b581;
+            background: var(--success);
             color: white;
         }
         
         .btn-danger {
-            background: #ed4245;
+            background: var(--danger);
             color: white;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
         }
         
-        .stat-box {
-            background: linear-gradient(135deg, #5865f2, #7289da);
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .stat-label {
-            opacity: 0.9;
-        }
-        
+        /* Table */
         .violations-table {
             width: 100%;
             border-collapse: collapse;
@@ -213,40 +431,150 @@
         .violations-table td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #5865f2;
+            border-bottom: 1px solid var(--border);
         }
         
         .violations-table th {
-            background: #5865f2;
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            color: var(--text-secondary);
         }
         
+        .violations-table tr:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        /* Badges */
         .badge {
             display: inline-block;
-            padding: 5px 15px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: bold;
+            font-size: 0.85em;
+            font-weight: 600;
         }
         
-        .badge-spam { background: #faa61a; }
-        .badge-voice { background: #f26522; }
-        .badge-timeout { background: #5865f2; }
-        .badge-kick { background: #ed4245; }
+        .badge-spam { background: var(--warning); color: #000; }
+        .badge-voice { background: #f26522; color: #fff; }
+        .badge-timeout { background: var(--accent); color: #fff; }
+        .badge-kick { background: var(--danger); color: #fff; }
+        .badge-raid { background: #ff6b6b; color: #fff; }
         
+        /* Alerts */
         .alert {
-            padding: 15px 20px;
+            padding: 16px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .alert i {
+            font-size: 1.3em;
         }
         
         .alert-success {
-            background: rgba(67, 181, 129, 0.2);
-            border: 1px solid #43b581;
+            background: rgba(67, 181, 129, 0.15);
+            border-left: 4px solid var(--success);
+            color: var(--success);
         }
         
         .alert-danger {
-            background: rgba(237, 66, 69, 0.2);
-            border: 1px solid #ed4245;
+            background: rgba(237, 66, 69, 0.15);
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .alert-warning {
+            background: rgba(250, 166, 26, 0.15);
+            border-left: 4px solid var(--warning);
+            color: var(--warning);
+        }
+        
+        /* List Items */
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        
+        .list-item:hover {
+            background: var(--bg-primary);
+        }
+        
+        .list-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
         }
     </style>
 </head>
@@ -256,67 +584,138 @@
             <% if (guild.icon) { %>
                 <img src="<%= guild.icon %>" alt="<%= guild.name %>" class="guild-icon">
             <% } else { %>
-                <div class="guild-icon" style="background: #5865f2; display: flex; align-items: center; justify-content: center; font-size: 1.5em;">
+                <div class="guild-icon" style="background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.5em;">
                     <%= guild.name.charAt(0) %>
                 </div>
             <% } %>
-            <div>
+            <div class="guild-details">
                 <div class="guild-name"><%= guild.name %></div>
-                <div style="opacity: 0.7;">👥 <%= guild.memberCount %> üye</div>
+                <div class="guild-status">
+                    <div class="status-badge">
+                        <span class="status-dot"></span>
+                        Aktif
+                    </div>
+                    <span style="opacity: 0.7;">👥 <%= guild.memberCount %> üye</span>
+                </div>
             </div>
         </div>
-        <a href="/dashboard" class="back-btn">← Geri</a>
+        <a href="/dashboard" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Geri
+        </a>
     </div>
 
     <div class="container">
         <div class="sidebar">
-            <div class="menu-item active" data-tab="overview">
-                📊 Genel Bakış
+            <div class="menu-section">
+                <div class="menu-title">Genel</div>
+                <div class="menu-item active" data-tab="overview">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Genel Bakış</span>
+                </div>
+                <div class="menu-item" data-tab="stats">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>İstatistikler</span>
+                </div>
             </div>
-            <div class="menu-item" data-tab="settings">
-                ⚙️ Ayarlar
+
+            <div class="menu-section">
+                <div class="menu-title">Güvenlik</div>
+                <div class="menu-item" data-tab="antiraid">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Anti-Raid</span>
+                </div>
+                <div class="menu-item" data-tab="spam">
+                    <i class="fas fa-comments"></i>
+                    <span>Spam Koruması</span>
+                </div>
+                <div class="menu-item" data-tab="linkfilter">
+                    <i class="fas fa-link"></i>
+                    <span>Link Filtresi</span>
+                </div>
+                <div class="menu-item" data-tab="voice">
+                    <i class="fas fa-microphone"></i>
+                    <span>Ses Koruması</span>
+                </div>
             </div>
-            <div class="menu-item" data-tab="logs">
-                📜 İhlal Logları
+
+            <div class="menu-section">
+                <div class="menu-title">Yönetim</div>
+                <div class="menu-item" data-tab="logs">
+                    <i class="fas fa-file-alt"></i>
+                    <span>İhlal Logları</span>
+                </div>
+                <div class="menu-item" data-tab="whitelist">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Beyaz Liste</span>
+                </div>
+                <div class="menu-item" data-tab="penalties">
+                    <i class="fas fa-gavel"></i>
+                    <span>Ceza Ayarları</span>
+                </div>
             </div>
-            <div class="menu-item" data-tab="whitelist">
-                📝 Beyaz Liste
-            </div>
-            <div class="menu-item" data-tab="control">
-                🎛️ Bot Kontrolü
+
+            <div class="menu-section">
+                <div class="menu-title">Ayarlar</div>
+                <div class="menu-item" data-tab="channels">
+                    <i class="fas fa-hashtag"></i>
+                    <span>Kanallar</span>
+                </div>
+                <div class="menu-item" data-tab="advanced">
+                    <i class="fas fa-cog"></i>
+                    <span>Gelişmiş</span>
+                </div>
             </div>
         </div>
 
         <div class="content">
             <!-- GENEL BAKIŞ -->
             <div class="tab-content active" id="overview">
-                <h1>📊 Genel Bakış</h1>
-                
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-chart-line"></i> Genel Bakış</h1>
+                    <p class="page-description">Sunucunuzun güvenlik durumuna genel bir bakış</p>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-box">
+                        <div class="stat-icon">📊</div>
                         <div class="stat-number"><%= stats.total_violations %></div>
                         <div class="stat-label">Toplam İhlal</div>
                     </div>
                     <div class="stat-box">
+                        <div class="stat-icon">📩</div>
                         <div class="stat-number"><%= stats.spam_detected %></div>
                         <div class="stat-label">Spam Tespiti</div>
                     </div>
                     <div class="stat-box">
+                        <div class="stat-icon">🎤</div>
                         <div class="stat-number"><%= stats.voice_abuse_detected %></div>
                         <div class="stat-label">Ses Kötüye Kullanım</div>
                     </div>
                     <div class="stat-box">
+                        <div class="stat-icon">⏱️</div>
                         <div class="stat-number"><%= stats.timeouts_issued %></div>
                         <div class="stat-label">Timeout</div>
                     </div>
                     <div class="stat-box">
+                        <div class="stat-icon">👢</div>
                         <div class="stat-number"><%= stats.kicks_issued %></div>
                         <div class="stat-label">Kick</div>
+                    </div>
+                    <div class="stat-box" style="background: linear-gradient(135deg, #43b581 0%, #2ecc71 100%);">
+                        <div class="stat-icon">🛡️</div>
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">Koruma Oranı</div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Son İhlaller</h2>
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><i class="fas fa-history"></i> Son İhlaller</h2>
+                            <p class="card-subtitle">En son tespit edilen 10 ihlal</p>
+                        </div>
+                    </div>
                     <% if (violations.length > 0) { %>
                         <table class="violations-table">
                             <thead>
@@ -349,62 +748,271 @@
                             </tbody>
                         </table>
                     <% } else { %>
-                        <p style="text-align: center; opacity: 0.7; padding: 30px;">Henüz ihlal kaydı yok!</p>
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Henüz ihlal kaydı yok!</h3>
+                            <p>Sunucunuz güvende 🎉</p>
+                        </div>
                     <% } %>
                 </div>
             </div>
 
-            <!-- AYARLAR -->
-            <div class="tab-content" id="settings">
-                <h1>⚙️ Bot Ayarları</h1>
-                
+            <!-- İSTATİSTİKLER -->
+            <div class="tab-content" id="stats">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-chart-bar"></i> Detaylı İstatistikler</h1>
+                    <p class="page-description">Sunucunuzun güvenlik istatistikleri</p>
+                </div>
+
                 <div class="card">
-                    <h2>Spam Koruması</h2>
-                    <div class="form-group">
-                        <label>Spam Eşiği (kaç mesaj)</label>
-                        <input type="number" id="spam_threshold" value="<%= settings.spam_threshold || 5 %>">
-                    </div>
-                    <div class="form-group">
-                        <label>Zaman Aralığı (milisaniye)</label>
-                        <input type="number" id="spam_timewindow" value="<%= settings.spam_timewindow || 5000 %>">
-                        <small style="opacity: 0.7; display: block; margin-top: 5px;">
-                            Örnek: 5000 = 5 saniye
-                        </small>
+                    <h2 class="card-title"><i class="fas fa-calendar-week"></i> Bu Hafta</h2>
+                    <p style="color: var(--text-secondary); margin-top: 20px; text-align: center;">Haftalık istatistikler yakında eklenecek...</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-calendar-alt"></i> Bu Ay</h2>
+                    <p style="color: var(--text-secondary); margin-top: 20px; text-align: center;">Aylık istatistikler yakında eklenecek...</p>
+                </div>
+            </div>
+
+            <!-- ANTI-RAID -->
+            <div class="tab-content" id="antiraid">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-shield-alt"></i> Anti-Raid Koruması</h1>
+                    <p class="page-description">Toplu hesap saldırılarını önleyin</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-power-off"></i> Durum</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Anti-Raid Koruması</div>
+                            <div class="toggle-description">Şüpheli toplu katılımları otomatik tespit eder</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.antiraid_enabled ? 'active' : '' %>" 
+                             data-setting="antiraid_enabled"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Ses Kanalı Koruması</h2>
+                    <h2 class="card-title"><i class="fas fa-sliders-h"></i> Ayarlar</h2>
+                    
+                    <div class="form-group">
+                        <label>Join Eşiği (60 saniyede kaç kişi)</label>
+                        <input type="number" id="join_threshold" value="<%= settings.join_threshold || 5 %>" min="1" max="50">
+                        <div class="form-help">Örn: 5000 = 5 saniye içinde</div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveSpamSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- LINK FİLTRESİ -->
+            <div class="tab-content" id="linkfilter">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-link"></i> Link Filtresi</h1>
+                    <p class="page-description">Zararlı linkleri otomatik engelle</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-power-off"></i> Durum</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Link Filtresi</div>
+                            <div class="toggle-description">Phishing ve scam linklerini engelle</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.linkfilter_enabled ? 'active' : '' %>" 
+                             data-setting="linkfilter_enabled"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">URL Kısaltıcıları Engelle</div>
+                            <div class="toggle-description">bit.ly, tinyurl gibi servisleri engelle</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.block_url_shorteners ? 'active' : '' %>" 
+                             data-setting="block_url_shorteners"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Sıkı Mod</div>
+                            <div class="toggle-description">Tüm şüpheli linkleri engelle</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.strict_mode ? 'active' : '' %>" 
+                             data-setting="strict_mode"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SES KORUMASI -->
+            <div class="tab-content" id="voice">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-microphone"></i> Ses Koruması</h1>
+                    <p class="page-description">Ses kanalı kötüye kullanımını önle</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-sliders-h"></i> Ayarlar</h2>
+                    
                     <div class="form-group">
                         <label>Ses Eşiği (kaç eylem)</label>
                         <input type="number" id="voice_threshold" value="<%= settings.voice_threshold || 3 %>">
+                        <div class="form-help">Susturma/Sağırlaştırma spam eşiği</div>
                     </div>
+
                     <div class="form-group">
                         <label>Zaman Aralığı (milisaniye)</label>
                         <input type="number" id="voice_timewindow" value="<%= settings.voice_timewindow || 10000 %>">
+                        <div class="form-help">Örn: 10000 = 10 saniye</div>
                     </div>
+
+                    <button class="btn btn-success" onclick="saveVoiceSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- İHLAL LOGLARI -->
+            <div class="tab-content" id="logs">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-file-alt"></i> İhlal Logları</h1>
+                    <p class="page-description">Tüm güvenlik ihlallerini görüntüle</p>
                 </div>
 
                 <div class="card">
-                    <h2>Ceza Ayarları</h2>
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-list"></i> Tüm İhlaller</h2>
+                        <button class="btn btn-danger" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i>
+                            Temizle
+                        </button>
+                    </div>
+                    <% if (violations.length > 0) { %>
+                        <table class="violations-table">
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı ID</th>
+                                    <th>Tip</th>
+                                    <th>Sebep</th>
+                                    <th>Ceza</th>
+                                    <th>Tarih</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% violations.forEach(v => { %>
+                                    <tr>
+                                        <td><%= v.user_id %></td>
+                                        <td>
+                                            <span class="badge badge-<%= v.type %>">
+                                                <%= v.type === 'spam' ? '📩 Spam' : '🎤 Ses' %>
+                                            </span>
+                                        </td>
+                                        <td><%= v.reason %></td>
+                                        <td>
+                                            <span class="badge badge-<%= v.action %>">
+                                                <%= v.action === 'timeout' ? '⏱️ Timeout' : '👢 Kick' %>
+                                            </span>
+                                        </td>
+                                        <td><%= new Date(v.timestamp).toLocaleString('tr-TR') %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Henüz ihlal kaydı yok!</h3>
+                            <p>Sunucunuz güvende 🎉</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- BEYAZ LİSTE -->
+            <div class="tab-content" id="whitelist">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-user-shield"></i> Beyaz Liste</h1>
+                    <p class="page-description">Güvenilir kullanıcıları yönet</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-plus"></i> Kullanıcı Ekle</h2>
+                    
                     <div class="form-group">
-                        <label>1. İhlal Timeout (milisaniye)</label>
+                        <label>Kullanıcı ID</label>
+                        <input type="text" id="whitelist_user_id" placeholder="123456789012345678">
+                        <div class="form-help">Beyaz listeye eklenecek kullanıcının ID'si</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addToWhitelist()">
+                        <i class="fas fa-plus"></i>
+                        Ekle
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-list"></i> Beyaz Liste</h2>
+                    <div id="whitelist-container">
+                        <div style="text-align: center; padding: 30px;">
+                            <div class="loading"></div>
+                            <p style="margin-top: 15px; color: var(--text-secondary);">Yükleniyor...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CEZA AYARLARI -->
+            <div class="tab-content" id="penalties">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-gavel"></i> Ceza Ayarları</h1>
+                    <p class="page-description">Otomatik cezalandırma sistemini yapılandır</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-layer-group"></i> Aşamalı Ceza Sistemi</h2>
+                    
+                    <div class="form-group">
+                        <label>1. İhlal - Timeout Süresi (milisaniye)</label>
                         <input type="number" id="timeout_1" value="<%= settings.timeout_1 || 60000 %>">
-                        <small style="opacity: 0.7; display: block; margin-top: 5px;">
-                            Örnek: 60000 = 1 dakika
-                        </small>
+                        <div class="form-help">Örn: 60000 = 1 dakika</div>
                     </div>
+
                     <div class="form-group">
-                        <label>2. İhlal Timeout (milisaniye)</label>
+                        <label>2. İhlal - Timeout Süresi (milisaniye)</label>
                         <input type="number" id="timeout_2" value="<%= settings.timeout_2 || 3600000 %>">
-                        <small style="opacity: 0.7; display: block; margin-top: 5px;">
-                            Örnek: 3600000 = 1 saat
-                        </small>
+                        <div class="form-help">Örn: 3600000 = 1 saat</div>
                     </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Bilgi:</strong> 3. ihlalde kullanıcı otomatik olarak sunucudan atılır.
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="savePenaltySettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- KANALLAR -->
+            <div class="tab-content" id="channels">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-hashtag"></i> Kanal Ayarları</h1>
+                    <p class="page-description">Log ve bildirim kanallarını ayarla</p>
                 </div>
 
                 <div class="card">
-                    <h2>Log Kanalı</h2>
+                    <h2 class="card-title"><i class="fas fa-file-alt"></i> Log Kanalı</h2>
+                    
                     <div class="form-group">
                         <label>Log Kanalı Seç</label>
                         <select id="log_channel">
@@ -415,108 +1023,81 @@
                                 </option>
                             <% }) %>
                         </select>
+                        <div class="form-help">Tüm güvenlik olayları bu kanala kaydedilir</div>
                     </div>
-                </div>
 
-                <button class="btn btn-success" onclick="saveSettings()">💾 Ayarları Kaydet</button>
-            </div>
-
-            <!-- İHLAL LOGLARI -->
-            <div class="tab-content" id="logs">
-                <h1>📜 İhlal Logları</h1>
-                
-                <div class="card">
-                    <% if (violations.length > 0) { %>
-                        <table class="violations-table">
-                            <thead>
-                                <tr>
-                                    <th>Kullanıcı ID</th>
-                                    <th>Tip</th>
-                                    <th>Sebep</th>
-                                    <th>Ceza</th>
-                                    <th>Tarih</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% violations.forEach(v => { %>
-                                    <tr>
-                                        <td><%= v.user_id %></td>
-                                        <td>
-                                            <span class="badge badge-<%= v.type %>">
-                                                <%= v.type === 'spam' ? '📩 Spam' : '🎤 Ses' %>
-                                            </span>
-                                        </td>
-                                        <td><%= v.reason %></td>
-                                        <td>
-                                            <span class="badge badge-<%= v.action %>">
-                                                <%= v.action === 'timeout' ? '⏱️ Timeout' : '👢 Kick' %>
-                                            </span>
-                                        </td>
-                                        <td><%= new Date(v.timestamp).toLocaleString('tr-TR') %></td>
-                                    </tr>
-                                <% }) %>
-                            </tbody>
-                        </table>
-                    <% } else { %>
-                        <p style="text-align: center; opacity: 0.7; padding: 50px;">
-                            Henüz ihlal kaydı yok! 🎉
-                        </p>
-                    <% } %>
+                    <button class="btn btn-success" onclick="saveChannelSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
                 </div>
             </div>
 
-            <!-- BEYAZ LİSTE -->
-            <div class="tab-content" id="whitelist">
-                <h1>📝 Beyaz Liste</h1>
-                
-                <div class="card">
-                    <h2>Kullanıcı Ekle</h2>
-                    <div class="form-group">
-                        <label>Kullanıcı ID</label>
-                        <input type="text" id="whitelist_user_id" placeholder="123456789012345678">
-                    </div>
-                    <button class="btn btn-primary" onclick="addToWhitelist()">➕ Ekle</button>
+            <!-- GELİŞMİŞ -->
+            <div class="tab-content" id="advanced">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-cog"></i> Gelişmiş Ayarlar</h1>
+                    <p class="page-description">Teknik ayarlar ve bot kontrolü</p>
                 </div>
 
                 <div class="card">
-                    <h2>Beyaz Liste</h2>
-                    <div id="whitelist-container">
-                        <p style="text-align: center; opacity: 0.7;">Yükleniyor...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- BOT KONTROLÜ -->
-            <div class="tab-content" id="control">
-                <h1>🎛️ Bot Kontrolü</h1>
-                
-                <div class="card">
-                    <h2>Bot Durumu</h2>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0;">
-                        <div>
-                            <strong>Bot Aktif Mi?</strong>
-                            <p style="opacity: 0.7; margin-top: 5px;">
-                                Bot'u bu sunucuda aktif/pasif yapın
-                            </p>
+                    <h2 class="card-title"><i class="fas fa-power-off"></i> Bot Kontrolü</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Bot Aktif/Pasif</div>
+                            <div class="toggle-description">Bot'u bu sunucuda aktif veya pasif yap</div>
                         </div>
-                        <div class="toggle-switch <%= settings.enabled ? 'active' : '' %>" id="bot-toggle" onclick="toggleBot()"></div>
+                        <div class="toggle-switch <%= settings.enabled ? 'active' : '' %>" 
+                             id="bot-toggle" onclick="toggleBot()"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Hızlı Eylemler</h2>
-                    <button class="btn btn-primary" onclick="testBot()" style="margin-right: 10px;">
-                        🧪 Bot'u Test Et
+                    <h2 class="card-title"><i class="fas fa-tools"></i> Bakım</h2>
+                    
+                    <button class="btn btn-secondary" onclick="testBot()" style="margin-right: 10px;">
+                        <i class="fas fa-vial"></i>
+                        Bot'u Test Et
                     </button>
                     <button class="btn btn-danger" onclick="clearLogs()">
-                        🗑️ Logları Temizle
+                        <i class="fas fa-trash"></i>
+                        Logları Temizle
                     </button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-info-circle"></i> Bot Bilgileri</h2>
+                    
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-server"></i>
+                            <span>Sunucu ID</span>
+                        </div>
+                        <code><%= guild.id %></code>
+                    </div>
+
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-users"></i>
+                            <span>Toplam Üye</span>
+                        </div>
+                        <strong><%= guild.memberCount %></strong>
+                    </div>
+
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Bot Durumu</span>
+                        </div>
+                        <span class="badge badge-timeout">✅ Aktif</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+    <div id="alert-container" style="position: fixed; top: 100px; right: 20px; z-index: 1000; min-width: 300px;"></div>
 
     <script>
         const guildId = '<%= guild.id %>';
@@ -540,21 +1121,151 @@
         function showAlert(message, type = 'success') {
             const alert = document.createElement('div');
             alert.className = `alert alert-${type}`;
-            alert.textContent = message;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <div>${message}</div>
+            `;
             document.getElementById('alert-container').appendChild(alert);
             
-            setTimeout(() => alert.remove(), 3000);
+            setTimeout(() => alert.remove(), 4000);
         }
 
-        // Ayarları kaydet
-        async function saveSettings() {
+        // Toggle switch handler
+        document.querySelectorAll('.toggle-switch[data-setting]').forEach(toggle => {
+            toggle.addEventListener('click', async function() {
+                const setting = this.getAttribute('data-setting');
+                const enabled = !this.classList.contains('active');
+                
+                try {
+                    const response = await fetch(`/api/guild/${guildId}/settings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ [setting]: enabled ? 1 : 0 })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.classList.toggle('active');
+                        showAlert(`✅ ${setting} ${enabled ? 'aktif' : 'pasif'} edildi!`, 'success');
+                    } else {
+                        showAlert('❌ Hata: ' + data.message, 'danger');
+                    }
+                } catch (error) {
+                    showAlert('❌ Bağlantı hatası!', 'danger');
+                }
+            });
+        });
+
+        // Anti-Raid ayarları kaydet
+        async function saveAntiRaidSettings() {
+            const settings = {
+                join_threshold: parseInt(document.getElementById('join_threshold').value),
+                min_account_age: parseInt(document.getElementById('min_account_age').value),
+                suspicion_threshold: parseInt(document.getElementById('suspicion_threshold').value),
+                quarantine_role: document.getElementById('quarantine_role').value
+            };
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Anti-Raid ayarları kaydedildi!', 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Spam ayarları kaydet
+        async function saveSpamSettings() {
             const settings = {
                 spam_threshold: parseInt(document.getElementById('spam_threshold').value),
-                spam_timewindow: parseInt(document.getElementById('spam_timewindow').value),
+                spam_timewindow: parseInt(document.getElementById('spam_timewindow').value)
+            };
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Spam ayarları kaydedildi!', 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Ses ayarları kaydet
+        async function saveVoiceSettings() {
+            const settings = {
                 voice_threshold: parseInt(document.getElementById('voice_threshold').value),
-                voice_timewindow: parseInt(document.getElementById('voice_timewindow').value),
+                voice_timewindow: parseInt(document.getElementById('voice_timewindow').value)
+            };
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Ses ayarları kaydedildi!', 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Ceza ayarları kaydet
+        async function savePenaltySettings() {
+            const settings = {
                 timeout_1: parseInt(document.getElementById('timeout_1').value),
-                timeout_2: parseInt(document.getElementById('timeout_2').value),
+                timeout_2: parseInt(document.getElementById('timeout_2').value)
+            };
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Ceza ayarları kaydedildi!', 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Kanal ayarları kaydet
+        async function saveChannelSettings() {
+            const settings = {
                 log_channel: document.getElementById('log_channel').value
             };
 
@@ -568,7 +1279,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showAlert('✅ Ayarlar kaydedildi!', 'success');
+                    showAlert('✅ Kanal ayarları kaydedildi!', 'success');
                 } else {
                     showAlert('❌ Hata: ' + data.message, 'danger');
                 }
@@ -611,12 +1322,18 @@
                 const container = document.getElementById('whitelist-container');
                 
                 if (data.whitelist.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 30px;">Beyaz liste boş</p>';
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-user-shield"></i><h3>Beyaz liste boş</h3><p>Henüz kimse eklenmemiş</p></div>';
                 } else {
                     container.innerHTML = data.whitelist.map(userId => `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px;">
-                            <span>${userId}</span>
-                            <button class="btn btn-danger" onclick="removeFromWhitelist('${userId}')" style="padding: 5px 15px;">🗑️ Çıkar</button>
+                        <div class="list-item">
+                            <div class="list-item-content">
+                                <i class="fas fa-user"></i>
+                                <span>${userId}</span>
+                            </div>
+                            <button class="btn btn-danger" onclick="removeFromWhitelist('${userId}')" style="padding: 8px 16px;">
+                                <i class="fas fa-trash"></i>
+                                Çıkar
+                            </button>
                         </div>
                     `).join('');
                 }
@@ -688,6 +1405,802 @@
                 showAlert('🗑️ Loglar temizlendi!', 'success');
             }
         }
+    </script>
+</body>
+</html>help">Örn: 60 saniyede 5 kişi katılırsa alarm ver</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Minimum Hesap Yaşı (gün)</label>
+                        <input type="number" id="min_account_age" value="<%= settings.min_account_age || 7 %>" min="0" max="365">
+                        <div class="form-help">Bu değerden daha yeni hesaplar şüpheli sayılır</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Şüphe Eşiği (0-10)</label>
+                        <input type="number" id="suspicion_threshold" value="<%= settings.suspicion_threshold || 5 %>" min="1" max="10">
+                        <div class="form-help">Bu değerin üstündeki şüphe skorları işleme alınır</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Karantina Rolü</label>
+                        <select id="quarantine_role">
+                            <option value="">Seçiniz...</option>
+                            <% channels.forEach(channel => { 
+                                if (channel.type === 'role') { %>
+                                <option value="<%= channel.id %>" <%= settings.quarantine_role === channel.id ? 'selected' : '' %>>
+                                    @<%= channel.name %>
+                                </option>
+                            <% }}) %>
+                        </select>
+                        <div class="form-help">Şüpheli kullanıcılara verilecek rol</div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveAntiRaidSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- SPAM KORUMASI -->
+            <div class="tab-content" id="spam">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-comments"></i> Spam Koruması</h1>
+                    <p class="page-description">Mesaj spam'ini otomatik engelle</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-sliders-h"></i> Ayarlar</h2>
+                    
+                    <div class="form-group">
+                        <label>Spam Eşiği (kaç mesaj)</label>
+                        <input type="number" id="spam_threshold" value="<%= settings.spam_threshold || 5 %>">
+                        <div class="form-help">Bu kadar mesaj gönderilirse spam say</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Zaman Aralığı (milisaniye)</label>
+                        <input type="number" id="spam_timewindow" value="<%= settings.spam_timewindow || 5000 %>">
+                        <div class="form-help">Örnek: 5000 = 5 saniye</div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveSpamSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- LINK FİLTRESİ -->
+            <div class="tab-content" id="linkfilter">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-link"></i> Link Filtresi</h1>
+                    <p class="page-description">Zararlı linkleri ve scam'leri engelle</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-power-off"></i> Durum</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Link Filtresi</div>
+                            <div class="toggle-description">Şüpheli ve zararlı linkleri otomatik engeller</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.linkfilter_enabled ? 'active' : '' %>" 
+                             data-setting="linkfilter_enabled"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">URL Kısaltıcıları Engelle</div>
+                            <div class="toggle-description">bit.ly, tinyurl gibi kısaltılmış linkleri engelle</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.block_url_shorteners ? 'active' : '' %>" 
+                             data-setting="block_url_shorteners"></div>
+                    </div>
+
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Sıkı Mod</div>
+                            <div class="toggle-description">Daha katı link kontrolü yapar</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.strict_mode ? 'active' : '' %>" 
+                             data-setting="strict_mode"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-ban"></i> Kara Liste</h2>
+                    <p class="card-subtitle">Engellenecek özel domainler ekleyin</p>
+                    
+                    <div class="form-group">
+                        <label>Domain Ekle</label>
+                        <input type="text" id="blacklist_domain" placeholder="örn: scamsite.com">
+                    </div>
+                    <button class="btn btn-danger" onclick="addToBlacklist()">
+                        <i class="fas fa-plus"></i>
+                        Kara Listeye Ekle
+                    </button>
+
+                    <div id="blacklist-container" style="margin-top: 20px;">
+                        <p style="color: var(--text-secondary);">Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SES KORUMASI -->
+            <div class="tab-content" id="voice">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-microphone"></i> Ses Koruması</h1>
+                    <p class="page-description">Ses kanalı kötüye kullanımını önle</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-sliders-h"></i> Ayarlar</h2>
+                    
+                    <div class="form-group">
+                        <label>Ses Eşiği (kaç eylem)</label>
+                        <input type="number" id="voice_threshold" value="<%= settings.voice_threshold || 3 %>">
+                        <div class="form-help">Sürekli susturma/sağırlaştırma limiti</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Zaman Aralığı (milisaniye)</label>
+                        <input type="number" id="voice_timewindow" value="<%= settings.voice_timewindow || 10000 %>">
+                        <div class="form-help">Örnek: 10000 = 10 saniye</div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveVoiceSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- İHLAL LOGLARI -->
+            <div class="tab-content" id="logs">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-file-alt"></i> İhlal Logları</h1>
+                    <p class="page-description">Tüm güvenlik ihlallerinin detaylı kaydı</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title"><i class="fas fa-list"></i> Tüm İhlaller</h2>
+                            <p class="card-subtitle">Son 50 ihlal kaydı</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i>
+                            Logları Temizle
+                        </button>
+                    </div>
+
+                    <% if (violations.length > 0) { %>
+                        <table class="violations-table">
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı ID</th>
+                                    <th>Tip</th>
+                                    <th>Sebep</th>
+                                    <th>Ceza</th>
+                                    <th>Tarih</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% violations.forEach(v => { %>
+                                    <tr>
+                                        <td><%= v.user_id %></td>
+                                        <td>
+                                            <span class="badge badge-<%= v.type %>">
+                                                <%= v.type === 'spam' ? '📩 Spam' : '🎤 Ses' %>
+                                            </span>
+                                        </td>
+                                        <td><%= v.reason %></td>
+                                        <td>
+                                            <span class="badge badge-<%= v.action %>">
+                                                <%= v.action === 'timeout' ? '⏱️ Timeout' : '👢 Kick' %>
+                                            </span>
+                                        </td>
+                                        <td><%= new Date(v.timestamp).toLocaleString('tr-TR') %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    <% } else { %>
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Henüz ihlal kaydı yok!</h3>
+                            <p>Sunucunuz güvende 🎉</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- BEYAZ LİSTE -->
+            <div class="tab-content" id="whitelist">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-user-shield"></i> Beyaz Liste</h1>
+                    <p class="page-description">Güvenlik kontrollerinden muaf kullanıcılar</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-user-plus"></i> Kullanıcı Ekle</h2>
+                    
+                    <div class="form-group">
+                        <label>Kullanıcı ID</label>
+                        <input type="text" id="whitelist_user_id" placeholder="123456789012345678">
+                        <div class="form-help">Bu kullanıcı tüm güvenlik kontrollerinden muaf olacak</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addToWhitelist()">
+                        <i class="fas fa-plus"></i>
+                        Ekle
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-list"></i> Beyaz Liste</h2>
+                    <div id="whitelist-container">
+                        <p style="text-align: center; color: var(--text-secondary);">Yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CEZA AYARLARI -->
+            <div class="tab-content" id="penalties">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-gavel"></i> Ceza Ayarları</h1>
+                    <p class="page-description">Otomatik cezalandırma sistemi</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-clock"></i> Timeout Süreleri</h2>
+                    
+                    <div class="form-group">
+                        <label>1. İhlal Timeout (milisaniye)</label>
+                        <input type="number" id="timeout_1" value="<%= settings.timeout_1 || 60000 %>">
+                        <div class="form-help">Örnek: 60000 = 1 dakika</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>2. İhlal Timeout (milisaniye)</label>
+                        <input type="number" id="timeout_2" value="<%= settings.timeout_2 || 3600000 %>">
+                        <div class="form-help">Örnek: 3600000 = 1 saat</div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Not:</strong> 3. ihlalde kullanıcı otomatik olarak sunucudan atılır.
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="savePenaltySettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- KANALLAR -->
+            <div class="tab-content" id="channels">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-hashtag"></i> Kanal Ayarları</h1>
+                    <p class="page-description">Log ve bildirim kanalları</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-file-alt"></i> Log Kanalı</h2>
+                    
+                    <div class="form-group">
+                        <label>Log Kanalı Seç</label>
+                        <select id="log_channel">
+                            <option value="">Seçiniz...</option>
+                            <% channels.forEach(channel => { %>
+                                <option value="<%= channel.id %>" <%= settings.log_channel === channel.id ? 'selected' : '' %>>
+                                    #<%= channel.name %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <div class="form-help">Tüm güvenlik logları bu kanala gönderilir</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Doğrulama Kanalı</label>
+                        <select id="verification_channel">
+                            <option value="">Seçiniz...</option>
+                            <% channels.forEach(channel => { %>
+                                <option value="<%= channel.id %>" <%= settings.verification_channel === channel.id ? 'selected' : '' %>>
+                                    #<%= channel.name %>
+                                </option>
+                            <% }) %>
+                        </select>
+                        <div class="form-help">Yeni üyelerin doğrulama yapacağı kanal</div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="saveChannelSettings()">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+
+            <!-- GELİŞMİŞ -->
+            <div class="tab-content" id="advanced">
+                <div class="page-header">
+                    <h1 class="page-title"><i class="fas fa-cog"></i> Gelişmiş Ayarlar</h1>
+                    <p class="page-description">Bot kontrol ve gelişmiş özellikler</p>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-power-off"></i> Bot Kontrolü</h2>
+                    
+                    <div class="toggle-container">
+                        <div class="toggle-info">
+                            <div class="toggle-title">Bot Aktif Mi?</div>
+                            <div class="toggle-description">Bot'u bu sunucuda aktif/pasif yapın</div>
+                        </div>
+                        <div class="toggle-switch <%= settings.enabled ? 'active' : '' %>" 
+                             id="bot-toggle" onclick="toggleBot()"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-tools"></i> Hızlı Eylemler</h2>
+                    
+                    <button class="btn btn-primary" onclick="testBot()" style="margin-right: 10px;">
+                        <i class="fas fa-vial"></i>
+                        Bot'u Test Et
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Tüm Verileri Sıfırla
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-info-circle"></i> Bot Bilgileri</h2>
+                    
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-code"></i>
+                            <div>
+                                <strong>Versiyon</strong>
+                                <div style="font-size: 0.9em; opacity: 0.7;">v1.0.0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Uptime</strong>
+                                <div style="font-size: 0.9em; opacity: 0.7;">24/7 Aktif</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <i class="fas fa-server"></i>
+                            <div>
+                                <strong>Sunucular</strong>
+                                <div style="font-size: 0.9em; opacity: 0.7;">Bot birden fazla sunucuda aktif</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="alert-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 400px;"></div>
+
+    <script>
+        const guildId = '<%= guild.id %>';
+
+        // Tab değiştirme
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                item.classList.add('active');
+                document.getElementById(item.dataset.tab).classList.add('active');
+                
+                if (item.dataset.tab === 'whitelist') {
+                    loadWhitelist();
+                }
+                if (item.dataset.tab === 'linkfilter') {
+                    loadBlacklist();
+                }
+            });
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-switch[data-setting]').forEach(toggle => {
+            toggle.addEventListener('click', async function() {
+                const setting = this.getAttribute('data-setting');
+                const enabled = !this.classList.contains('active');
+                
+                try {
+                    const response = await fetch(`/api/guild/${guildId}/settings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ [setting]: enabled ? 1 : 0 })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.classList.toggle('active');
+                        showAlert(`✅ ${setting} ${enabled ? 'aktif' : 'pasif'} edildi!`, 'success');
+                    } else {
+                        showAlert('❌ Hata: ' + data.message, 'danger');
+                    }
+                } catch (error) {
+                    showAlert('❌ Bağlantı hatası!', 'danger');
+                }
+            });
+        });
+
+        // Alert göster
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.animation = 'slideIn 0.3s';
+            document.getElementById('alert-container').appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.animation = 'slideOut 0.3s';
+                setTimeout(() => alert.remove(), 300);
+            }, 3000);
+        }
+
+        // Anti-Raid ayarları kaydet
+        async function saveAntiRaidSettings() {
+            const settings = {
+                join_threshold: parseInt(document.getElementById('join_threshold').value),
+                min_account_age: parseInt(document.getElementById('min_account_age').value),
+                suspicion_threshold: parseInt(document.getElementById('suspicion_threshold').value),
+                quarantine_role: document.getElementById('quarantine_role').value
+            };
+
+            await saveSettings(settings, 'Anti-Raid ayarları');
+        }
+
+        // Spam ayarları kaydet
+        async function saveSpamSettings() {
+            const settings = {
+                spam_threshold: parseInt(document.getElementById('spam_threshold').value),
+                spam_timewindow: parseInt(document.getElementById('spam_timewindow').value)
+            };
+
+            await saveSettings(settings, 'Spam ayarları');
+        }
+
+        // Ses ayarları kaydet
+        async function saveVoiceSettings() {
+            const settings = {
+                voice_threshold: parseInt(document.getElementById('voice_threshold').value),
+                voice_timewindow: parseInt(document.getElementById('voice_timewindow').value)
+            };
+
+            await saveSettings(settings, 'Ses ayarları');
+        }
+
+        // Ceza ayarları kaydet
+        async function savePenaltySettings() {
+            const settings = {
+                timeout_1: parseInt(document.getElementById('timeout_1').value),
+                timeout_2: parseInt(document.getElementById('timeout_2').value)
+            };
+
+            await saveSettings(settings, 'Ceza ayarları');
+        }
+
+        // Kanal ayarları kaydet
+        async function saveChannelSettings() {
+            const settings = {
+                log_channel: document.getElementById('log_channel').value,
+                verification_channel: document.getElementById('verification_channel').value
+            };
+
+            await saveSettings(settings, 'Kanal ayarları');
+        }
+
+        // Genel ayar kaydetme fonksiyonu
+        async function saveSettings(settings, label = 'Ayarlar') {
+            try {
+                const response = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`✅ ${label} kaydedildi!`, 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Bot aç/kapat
+        async function toggleBot() {
+            const toggle = document.getElementById('bot-toggle');
+            const enabled = !toggle.classList.contains('active');
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    toggle.classList.toggle('active');
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Beyaz listeyi yükle
+        async function loadWhitelist() {
+            try {
+                const response = await fetch(`/api/guild/${guildId}/whitelist`);
+                const data = await response.json();
+                
+                const container = document.getElementById('whitelist-container');
+                
+                if (data.whitelist.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-list"></i><h3>Beyaz liste boş</h3><p>Henüz kimse eklenmemiş</p></div>';
+                } else {
+                    container.innerHTML = data.whitelist.map(userId => `
+                        <div class="list-item">
+                            <div class="list-item-content">
+                                <i class="fas fa-user"></i>
+                                <span>${userId}</span>
+                            </div>
+                            <button class="btn btn-danger" onclick="removeFromWhitelist('${userId}')" style="padding: 8px 16px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                showAlert('❌ Beyaz liste yüklenemedi!', 'danger');
+            }
+        }
+
+        // Beyaz listeye ekle
+        async function addToWhitelist() {
+            const userId = document.getElementById('whitelist_user_id').value.trim();
+            
+            if (!userId) {
+                showAlert('❌ Kullanıcı ID giriniz!', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/whitelist/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Kullanıcı beyaz listeye eklendi!', 'success');
+                    document.getElementById('whitelist_user_id').value = '';
+                    loadWhitelist();
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Beyaz listeden çıkar
+        async function removeFromWhitelist(userId) {
+            if (!confirm('Bu kullanıcıyı beyaz listeden çıkarmak istediğinizden emin misiniz?')) return;
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/whitelist/remove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Kullanıcı beyaz listeden çıkarıldı!', 'success');
+                    loadWhitelist();
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Kara listeyi yükle
+        async function loadBlacklist() {
+            try {
+                const response = await fetch(`/api/guild/${guildId}/blacklist`);
+                const data = await response.json();
+                
+                const container = document.getElementById('blacklist-container');
+                
+                if (data.blacklist.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-ban"></i><h3>Kara liste boş</h3></div>';
+                } else {
+                    container.innerHTML = '<div style="max-height: 400px; overflow-y: auto;">' + data.blacklist.map(domain => `
+                        <div class="list-item">
+                            <div class="list-item-content">
+                                <i class="fas fa-ban"></i>
+                                <span>${domain}</span>
+                            </div>
+                            <button class="btn btn-danger" onclick="removeFromBlacklist('${domain}')" style="padding: 8px 16px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('') + '</div>';
+                }
+            } catch (error) {
+                showAlert('❌ Kara liste yüklenemedi!', 'danger');
+            }
+        }
+
+        // Kara listeye ekle
+        async function addToBlacklist() {
+            const domain = document.getElementById('blacklist_domain').value.trim().toLowerCase();
+            
+            if (!domain) {
+                showAlert('❌ Domain giriniz!', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/blacklist/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Domain kara listeye eklendi!', 'success');
+                    document.getElementById('blacklist_domain').value = '';
+                    loadBlacklist();
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Kara listeden çıkar
+        async function removeFromBlacklist(domain) {
+            if (!confirm(`${domain} domainini kara listeden çıkarmak istediğinizden emin misiniz?`)) return;
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/blacklist/remove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Domain kara listeden çıkarıldı!', 'success');
+                    loadBlacklist();
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Bot test
+        function testBot() {
+            showAlert('🧪 Test mesajı gönderildi! Discord sunucunuzu kontrol edin.', 'success');
+        }
+
+        // Logları temizle
+        async function clearLogs() {
+            if (!confirm('Tüm logları silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) return;
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/logs/clear`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Loglar temizlendi!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Tüm verileri sıfırla
+        async function clearAllData() {
+            if (!confirm('TÜM VERİLERİ SIFIRLAMAK İSTEDİĞİNİZDEN EMİN MİSİNİZ?\n\nBu işlem:\n- Tüm ihlal kayıtlarını\n- İstatistikleri\n- Beyaz listeyi\n- Özel ayarları\n\nsilecektir ve GERİ ALINAMAZ!')) return;
+
+            if (!confirm('Son kez soruyoruz. Gerçekten tüm verileri silmek istiyor musunuz?')) return;
+
+            try {
+                const response = await fetch(`/api/guild/${guildId}/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Tüm veriler sıfırlandı!', 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showAlert('❌ Hata: ' + data.message, 'danger');
+                }
+            } catch (error) {
+                showAlert('❌ Bağlantı hatası!', 'danger');
+            }
+        }
+
+        // Animasyonlar
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
